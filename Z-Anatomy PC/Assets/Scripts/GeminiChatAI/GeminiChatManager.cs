@@ -4,6 +4,7 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 using System.Text;
 using TMPro;
+using System.Speech.Synthesis; // Windows Text-to-Speech
 
 public class GeminiChatManager : MonoBehaviour
 {
@@ -15,14 +16,19 @@ public class GeminiChatManager : MonoBehaviour
     public RectTransform content; // Reference to Content GameObject
     public GameObject newTextPrefab; // Prefab for new text display
 
+    private SpeechSynthesizer speechSynthesizer; // Windows TTS
+
     void Start()
     {
+        speechSynthesizer = new SpeechSynthesizer(); // Initialize TTS
+        speechSynthesizer.SelectVoice("Microsoft Zira Desktop"); // Select a voice (change if needed)
         StartChat();
     }
 
     public void StartChat()
     {
         AddToChat("Bot: Hi! I'm ChatBot. How can I help you?");
+        SpeakText("Hi! I'm ChatBot. How can I help you?"); // Speak introduction
     }
 
     public void OnSendButtonClick()
@@ -82,16 +88,27 @@ public class GeminiChatManager : MonoBehaviour
             {
                 string text = responseFinal.candidates[0].content.parts[0].text;
                 AddToChat($"Bot: {text}");
+                SpeakText(text); // Speak the response
             }
             else
             {
                 AddToChat("Bot: Sorry, I didn't understand that.");
+                SpeakText("Sorry, I didn't understand that.");
             }
         }
         else
         {
             Debug.LogError("API Error: " + request.error);
             AddToChat("Bot: Sorry, something went wrong.");
+            SpeakText("Sorry, something went wrong.");
+        }
+    }
+
+    private void SpeakText(string text)
+    {
+        if (speechSynthesizer != null)
+        {
+            speechSynthesizer.SpeakAsync(text); // Speak the bot response asynchronously
         }
     }
 
